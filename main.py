@@ -1,25 +1,66 @@
 import requests
 import sys
+import json
+import codecs
+import os
 from bs4 import BeautifulSoup
 
-r = requests.get('http://www3.nhk.or.jp/news/html/20160210/k10010404101000.html')
+def main():
 
-html_doc = """
-<html><head><title>The Dormouse's story</title></head>
-<body>
-<p class="title"><b>The Dormouse's story</b></p>
+    r = requests.get('http://www3.nhk.or.jp/news/easy/news-list.json')
+    r.encoding = 'utf-8-sig'
+    o = json.loads(r.text)
+    parse(o)
 
-<p class="story">Once upon a time there were three little sisters; and their names were
-<a href="http://example.com/elsie" class="sister" id="link1">Elsie</a>,
-<a href="http://example.com/lacie" class="sister" id="link2">Lacie</a> and
-<a href="http://example.com/tillie" class="sister" id="link3">Tillie</a>;
-and they lived at the bottom of a well.</p>
+def parse(o):
+    for k, v in o[0].items():
+        parseDate(v)
 
-<p class="story">...</p>
-"""
+def parseDate(date):
+    for v in date:
+        parseNews(v)
 
-html_doc = r.text
-soup = BeautifulSoup(html_doc, 'html.parser')
+def parseNews(news):
+    news_id = news['news_id']
+    news_time = news['news_prearranged_time'].replace(':', '-')
+    title = news['title']
+    title_ruby = news['title_with_ruby']
+    news_uri = 'http://www3.nhk.or.jp/news/easy/' + str(news_id) + '/' + str(news_id) + '.html'
 
-outtext = soup.prettify()
-print(repr(soup.prettify()))
+    news_folder = 'data/' + news_time + '_' + news_id + '_' + title
+    news_folder = news_folder.replace(' ', '_')
+    news_file = str(news_id) + '.html'
+
+    if os.path.isdir(news_folder) == False:
+        os.makedirs(news_folder)
+
+        r = requests.get(news_uri)
+        r.encoding = 'utf-8'
+
+        soup = BeautifulSoup(r.text, 'html.parser')
+        date = soup.find('p', attrs={'id':'newsDate'}).contents[0]
+        title = soup.find('div', attrs={'id':'newstitle'})#.find('h2')
+        article = soup.find('div', attrs={'id':'newsarticle'})
+
+        for a in article.findAll('a'):
+            a.unwrap()
+
+        with open(news_folder + '/' + news_file, "w") as f:
+            print("<!DOCTYPE html>", file=f)
+            print("<html lang='ja'>", file=f)
+            print("<head><meta charset='utf-8'></head>", file=f)
+            print("<style>p { font-size: 120%; line-height: 3.2; padding-bottom: 20px; }</style>", file=f)
+            print("<body>", file=f)
+            print(title, file=f)
+            print(article, file=f)
+            print("</body>", file=f)
+            print("</html>", file=f)
+
+        if news['has_news_easy_voice'] == True:
+            voice_file = news['news_easy_voice_uri']
+            voice_uri = 'http://www3.nhk.or.jp/news/easy/' + str(news_id) + '/' + str(voice_file)
+            r = requests.get(voice_uri)
+            with open(news_folder + '/' + voice_file, "wb") as f:
+                f.write(r.content)
+
+main()
