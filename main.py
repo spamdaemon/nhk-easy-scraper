@@ -49,7 +49,7 @@ def parseNews(news):
             print("<!DOCTYPE html>", file=f)
             print("<html lang='ja'>", file=f)
             print("<head><meta charset='utf-8'></head>", file=f)
-            print("<style>p { font-size: 120%; line-height: 3.2; padding-bottom: 20px; }</style>", file=f)
+            print("<style>p { font-size: 100%; line-height: 3.2; padding-bottom: 20px; }</style>", file=f)
             print("<body>", file=f)
             print(title, file=f)
             print(article, file=f)
