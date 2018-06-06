@@ -76,31 +76,16 @@ def parseNews(news):
     r.encoding = 'utf-8'
 
     soup = BeautifulSoup(r.text, 'html.parser')
-    date = soup.find('p', attrs={'id':'newsDate'}).contents[0]
-    title = soup.find('div', attrs={'id':'newstitle'})#.find('h2')
-    article = soup.find('div', attrs={'id':'newsarticle'})
+    date = soup.find('p', attrs={'id':'js-article-date'})
+    title = soup.find('h1', attrs={'class':'article-main__title'})#.find('h2')
+    article = soup.find('div', attrs={'id':'js-article-body'})
 
     for a in article.findAll('a'):
         a.unwrap()
-
- #   if news['has_news_easy_voice'] == True:
- #       voice_file = re.sub(r"[^\da-z\.]i", "", news['news_easy_voice_uri'])
- #       voice = {
- #           "uri": 'http://www3.nhk.or.jp/news/easy/' + str(news_id) + '/' + str(voice_file),
- #           "file": voice_file
- #       }
- #       # add audio tag to mp3 file
- #       link = """<audio preload="metadata" controls="controls">
- #               <source src="{src}" type="audio/mpeg; codecs=mp3" />
- #               <a href="{src}" target="_blank">Download voice file</a>
- #               </audio>""".replace("{src}", voice_file)
- #       article.append(BeautifulSoup(link, 'html.parser'))
- #
- #   else:
         voice = {}
 
     return {
-        "content": str(title) + str(article),
+        "content": str(title) + str(date) + str(article),
         "voice": voice
     }
 
