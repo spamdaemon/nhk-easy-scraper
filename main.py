@@ -37,6 +37,7 @@ def parseDate(date, news):
         item = parseNews(i);
         items.append(item)
         content.append(item["content"])
+        content.append("<p style='page-break-after: always'>")
 
     with open(output, "w") as f:
         print('<?xml version="1.0" encoding="UTF-8" ?>', file=f)
